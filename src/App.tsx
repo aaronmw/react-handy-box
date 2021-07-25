@@ -1,5 +1,11 @@
+import { Box } from './lib/components';
+
 function App() {
-    return <div className="App">I AM AN APP</div>;
+    return (
+        <Box border="dashed" padding="normal">
+            I AM AN APP
+        </Box>
+    );
 }
 
 export default App;
