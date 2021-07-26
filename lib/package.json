@@ -28,7 +28,6 @@
     "build": "npm run build:types && npm run build:js",
     "eject": "react-scripts eject",
     "postbuild": "cp package.json lib",
-    "shipit": "npm run build && npm publish ./lib",
     "start": "react-scripts start",
     "test": "react-scripts test",
     "type-check": "tsc --noEmit",
