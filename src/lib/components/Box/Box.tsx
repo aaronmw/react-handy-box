@@ -1,29 +1,41 @@
+import React from 'react';
 import styled from 'styled-components';
-import { RESPONSIVE_BREAKPOINTS } from '../../tokens';
-import { BoxStyleProps } from './Box.types';
+import { ConfigObject } from '../../Config';
+import { BoxStyleProps, HandyBoxConfig } from './Box.types';
 import buildBoxStyles from './buildBoxStyles';
 
-type CoreBoxProps<Component extends React.ElementType> = BoxStyleProps & {
+type CoreBoxProps<
+    Config extends HandyBoxConfig,
+    TagName extends React.ElementType = 'div'
+> = BoxStyleProps<Config> & {
     additionalCSS?: string;
-    as?: Component;
+    as?: TagName;
     children?: React.ReactNode;
     highlightFocusWithin?: boolean;
-    hoverProps?: BoxStyleProps;
+    hoverProps?: BoxStyleProps<Config>;
     isOnlyForScreenReaders?: boolean;
     responsiveProps?: {
-        [breakpoint in keyof typeof RESPONSIVE_BREAKPOINTS]?: BoxProps<Component>;
+        [breakpoint in keyof typeof ConfigObject['current']['responsiveBreakpoints']]?: BoxProps<
+            Config,
+            TagName
+        >;
     };
 };
 
-export type BoxProps<Component extends React.ElementType = 'div'> =
-    CoreBoxProps<Component> &
-        Omit<
-            React.ComponentPropsWithRef<Component>,
-            keyof CoreBoxProps<Component> | keyof BoxStyleProps
-        >;
+export type BoxProps<
+    Config extends HandyBoxConfig,
+    TagName extends React.ElementType = 'div'
+> = CoreBoxProps<Config, TagName> &
+    Omit<
+        React.ComponentPropsWithRef<TagName>,
+        keyof CoreBoxProps<Config, TagName> | keyof BoxStyleProps<Config>
+    >;
 
-type BoxComponent = <Component extends React.ElementType = 'div'>(
-    props: BoxProps<Component>
+type BoxComponent = <
+    Config extends HandyBoxConfig,
+    TagName extends React.ElementType = 'div'
+>(
+    props: BoxProps<Config, TagName>
 ) => JSX.Element;
 
 const alwaysForwardedProps = ['disabled', 'onClick', 'width', 'height'];
@@ -121,6 +133,11 @@ const boxPropNames = [
     'zIndex',
 ];
 
+type BoxGeneratorTypeWhatever<TagName extends React.ElementType = 'div', Config extends HandyBoxConfig = > = (props: {
+    as?: TagName;
+    config?: Config
+}) => BoxComponent;
+
 const Box: BoxComponent = styled.div
     .attrs((props) => ({
         // Automatically apply aria-hidden attr
@@ -140,6 +157,6 @@ const Box: BoxComponent = styled.div
                     nativeFilter(propName) === true)
             );
         },
-    })((props: BoxProps) => buildBoxStyles(props));
+    })((props: BoxProps<Config, TagName>): BoxGeneratorTypeWhatever<Config extends HandyBoxConfig> => {return buildBoxStyles(props)});
 
 export default Box;

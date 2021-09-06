@@ -1,20 +1,6 @@
 import { readableColor } from 'polished';
 import { clamp } from 'lodash';
-import {
-    BORDER_RADII,
-    BORDER_STYLES,
-    BOX_SHADOW_STYLES,
-    COLOR_PALETTE,
-    FONT_SIZES,
-    GRID_SIZES,
-    LINE_HEIGHTS,
-    RESPONSIVE_BREAKPOINTS,
-    SPOT_COLORS,
-    TEXT_DECORATIONS,
-    TRANSITION_DURATIONS,
-    UNADJUSTABLE_COLORS,
-    Z_INDEXES,
-} from '../../tokens';
+import { ConfigObject } from '../../Config';
 import {
     BorderStyle,
     BoxStyleProps,
@@ -53,7 +39,7 @@ const toBorder: (
     return propValue === false
         ? 'none'
         : `${
-              BORDER_STYLES[
+              ConfigObject.current.borderStyles[
                   propValue === true ? 'normal' : (propValue as BorderStyle)
               ]
           } ${String(
@@ -74,21 +60,23 @@ const toBorderColor: (
     );
 
 const toBorderRadius = (borderRadiusPropValue) =>
-    BORDER_RADII[borderRadiusPropValue];
+    ConfigObject.current.borderRadii[borderRadiusPropValue];
 
 const toColor: (
     colorName: Color,
     adjustment?: boolean | string | number
 ) => ColorCode = (colorName, adjustment = false) => {
-    if (colorName in UNADJUSTABLE_COLORS) {
-        return UNADJUSTABLE_COLORS[colorName];
+    if (colorName in ConfigObject.current.colors.fixed) {
+        return ConfigObject.current.colors.fixed[colorName];
     }
 
     const baseColorName =
-        colorName in SPOT_COLORS ? SPOT_COLORS[colorName] : colorName;
+        colorName in ConfigObject.current.colors.spot
+            ? ConfigObject.current.colors.spot[colorName]
+            : colorName;
 
     if (!adjustment) {
-        return COLOR_PALETTE[baseColorName];
+        return ConfigObject.current.colors.palette[baseColorName];
     }
 
     const [rootColor, currentLightnessValue = 400] = baseColorName.split('--');
@@ -101,18 +89,20 @@ const toColor: (
         700
     );
 
-    return COLOR_PALETTE[`${rootColor}--${adjustedLightnessValue}`];
+    return ConfigObject.current.colors.palette[
+        `${rootColor}--${adjustedLightnessValue}`
+    ];
 };
 
 const toGridSizeOrLength = (propValue) =>
     propValue === false
         ? 0
         : propValue === true
-        ? GRID_SIZES.normal
+        ? ConfigObject.current.gridSizes.normal
         : typeof propValue === 'number'
         ? `${propValue}px`
-        : propValue in GRID_SIZES
-        ? GRID_SIZES[propValue]
+        : propValue in ConfigObject.current.gridSizes
+        ? ConfigObject.current.gridSizes[propValue]
         : propValue;
 
 const toLength = (propValue) =>
@@ -160,14 +150,20 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
                       cursor: disabled ? 'default' : 'pointer',
                       [highlightFocusWithin ? '&:focus-within' : '&:focus']: [
                           `box-shadow: 0 0 0 2px white, 0 0 0 6px ${
-                              COLOR_PALETTE[SPOT_COLORS['focusIndicator']]
+                              ConfigObject.current.colors.palette[
+                                  ConfigObject.current.colors.spot[
+                                      'focusIndicator'
+                                  ]
+                              ]
                           };`,
-                          `border-radius: ${BORDER_RADII.normal};`,
+                          `border-radius: ${ConfigObject.current.borderRadii.normal};`,
                           `position: ${position || 'relative'};`,
                           `z-index: ${
                               typeof zIndex === 'number'
                                   ? zIndex
-                                  : Z_INDEXES[zIndex || '1--stickyElements']
+                                  : ConfigObject.current.zIndexes[
+                                        zIndex || '1--stickyElements'
+                                    ]
                           };`,
                       ].join('\n'),
                   }
@@ -274,7 +270,8 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
     {
         propName: 'boxShadow',
         cssProperty: 'box-shadow',
-        getValue: (boxShadow) => BOX_SHADOW_STYLES[boxShadow],
+        getValue: (boxShadow) =>
+            ConfigObject.current.boxShadowStyles[boxShadow],
     },
     {
         propName: 'color',
@@ -349,8 +346,8 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
     {
         propName: 'fontSize',
         getCSS: (fontSize) => ({
-            'font-size': FONT_SIZES[fontSize],
-            'line-height': LINE_HEIGHTS[fontSize],
+            'font-size': ConfigObject.current.fontSizes[fontSize],
+            'line-height': ConfigObject.current.lineHeights[fontSize],
         }),
     },
     {
@@ -565,7 +562,7 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
 
             breakpointNames.forEach((breakpointName) => {
                 const breakpointSelector =
-                    RESPONSIVE_BREAKPOINTS[breakpointName];
+                    ConfigObject.current.responsiveBreakpoints[breakpointName];
                 styles[breakpointSelector] = buildBoxStyles(
                     responsiveProps[breakpointName]
                 );
@@ -601,7 +598,8 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
     {
         propName: 'textDecoration',
         cssProperty: 'text-decoration',
-        getValue: (textDecoration) => TEXT_DECORATIONS[textDecoration],
+        getValue: (textDecoration) =>
+            ConfigObject.current.textDecorations[textDecoration],
     },
     {
         propName: 'top',
@@ -616,8 +614,8 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
         propName: 'transitionDuration',
         cssProperty: 'transition-duration',
         getValue: (transitionDuration) =>
-            transitionDuration in TRANSITION_DURATIONS
-                ? TRANSITION_DURATIONS[transitionDuration]
+            transitionDuration in ConfigObject.current.transitionDurations
+                ? ConfigObject.current.transitionDurations[transitionDuration]
                 : typeof transitionDuration === 'number'
                 ? `${transitionDuration}ms`
                 : transitionDuration,
@@ -627,7 +625,8 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
         getCSS: (transitionProperty, { transitionDuration }) => ({
             'transition-property': [].concat(transitionProperty).join(', '),
             ...(!transitionDuration && {
-                'transition-duration': TRANSITION_DURATIONS.normal,
+                'transition-duration':
+                    ConfigObject.current.transitionDurations.normal,
             }),
         }),
     },
@@ -636,7 +635,8 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
         getCSS: (transitionTimingFunction, { transitionDuration }) => ({
             'transition-timing-function': transitionTimingFunction,
             ...(!transitionDuration && {
-                'transition-duration': TRANSITION_DURATIONS.normal,
+                'transition-duration':
+                    ConfigObject.current.transitionDurations.normal,
             }),
         }),
     },
@@ -653,7 +653,9 @@ const boxPropRenderers: Array<BoxPropRenderer> = [
         propName: 'zIndex',
         cssProperty: 'z-index',
         getValue: (zIndex) =>
-            typeof zIndex === 'number' ? zIndex : Z_INDEXES[zIndex],
+            typeof zIndex === 'number'
+                ? zIndex
+                : ConfigObject.current.zIndexes[zIndex],
     },
 ];
 

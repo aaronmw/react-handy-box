@@ -1,15 +1,24 @@
-import {
-    TINTS_AND_SHADES,
-    Z_INDEXES,
-    CORE_COLORS,
-    FONT_SIZES,
-    SPOT_COLORS,
-    UNADJUSTABLE_COLORS,
-    BOX_SHADOW_STYLES,
-    GRID_SIZES,
-    TEXT_DECORATIONS,
-    TRANSITION_DURATIONS,
-} from '../../tokens';
+export type HandyBoxConfig = {
+    baseUnit: string;
+    borderRadii: Record<string, string>;
+    borderStyles: Record<string, string>;
+    boxShadowStyles: Record<string, string>;
+    colors: {
+        core: Record<string, string>;
+        fixed: Record<string, string>;
+        palette: Record<string, string>;
+        spot: Record<string, string>;
+        variants: Record<string, (colorCode: string) => string>;
+    };
+    fontSizes: Record<string, string>;
+    fontWeights: Record<string, string>;
+    lineHeights: Record<string, string>;
+    gridSizes: Record<string, string | ((baseUnit: string) => string)>;
+    responsiveBreakpoints: Record<string, string>;
+    textDecorations: Record<string, string>;
+    transitionDurations: Record<string, string>;
+    zIndexes: Record<string, number>;
+};
 
 export type AnimatableCSSProperty =
     | 'all'
@@ -199,26 +208,32 @@ export type AnimatableCSSProperty =
     | 'z-index'
     | 'zoom';
 
-export type BorderRadius = 'normal' | 'large' | 'circle';
+export type BorderRadius<T extends HandyBoxConfig> = keyof T['borderRadii'];
 
-export type BorderStyle = 'normal' | 'thick' | 'dashed';
+export type BorderStyle<T extends HandyBoxConfig> = keyof T['borderStyles'];
 
-export type BoxShadow = keyof typeof BOX_SHADOW_STYLES;
+export type BoxShadow<T extends HandyBoxConfig> = keyof T['boxShadowStyles'];
 
-export type Color =
-    | keyof typeof CORE_COLORS
-    | keyof typeof UNADJUSTABLE_COLORS
-    | keyof typeof SPOT_COLORS
-    | `${keyof typeof CORE_COLORS}--${ColorLightness}`;
+type ExtractKeys<T extends { [k: string]: any }> = T extends infer G
+    ? `${string & keyof G}`
+    : never;
 
-export type ColorAdjustment =
-    | ColorLightness
-    | `+${ColorLightness}`
-    | `-${ColorLightness}`;
+export type Color<T extends HandyBoxConfig> =
+    | keyof T['colors']['core']
+    | keyof T['colors']['fixed']
+    | keyof T['colors']['spot']
+    | `${ExtractKeys<T['colors']['core']>}--${ColorLightness<T>}`;
+
+export type ColorAdjustment<T extends HandyBoxConfig> =
+    | ColorLightness<T>
+    | `+${ColorLightness<T>}`
+    | `-${ColorLightness<T>}`;
 
 export type ColorCode = `#${string}`;
 
-export type ColorLightness = keyof typeof TINTS_AND_SHADES;
+export type ColorLightness<T extends HandyBoxConfig> = ExtractKeys<
+    T['colors']['variants']
+>;
 
 export type Cursor =
     | 'auto'
@@ -294,24 +309,27 @@ export type FlexJustification =
     | 'space-evenly'
     | 'stretch';
 
-export type FontSize = 0 | keyof typeof FONT_SIZES;
+export type FontSize<T extends HandyBoxConfig> = 0 | keyof T['fontSizes'];
 
-export type FontWeight = 'normal' | 'bold';
+export type FontWeight<T extends HandyBoxConfig> = keyof T['fontWeights'];
 
-export type GridSize = keyof typeof GRID_SIZES;
+export type GridSize<T extends HandyBoxConfig> = keyof T['gridSizes'];
 
-export type GridSizeOrLength =
-    | GridSize
+export type GridSizeOrLength<T extends HandyBoxConfig> =
+    | GridSize<T>
     | 'auto'
     | 'unset'
     | `${number}px`
     | `${number}%`
     | number;
 
-export type TextDecoration = keyof typeof TEXT_DECORATIONS;
+export type LineHeights<T extends HandyBoxConfig> = keyof T['lineHeights'];
 
-export type TransitionDuration =
-    | keyof typeof TRANSITION_DURATIONS
+export type TextDecoration<T extends HandyBoxConfig> =
+    keyof T['textDecorations'];
+
+export type TransitionDuration<T extends HandyBoxConfig> =
+    | keyof T['transitionDurations']
     | `${number}ms`
     | `${number}s`
     | number;
@@ -330,34 +348,34 @@ export type WhiteSpace =
     | 'pre-line'
     | 'break-spaces';
 
-export type zIndex = keyof typeof Z_INDEXES | number;
+export type zIndex<T extends HandyBoxConfig> = keyof T['zIndexes'] | number;
 
-export type BoxStyleProps = {
+export type BoxStyleProps<T extends HandyBoxConfig> = {
     alignItems?: FlexAlignment;
     alignSelf?: FlexAlignment;
-    backgroundColor?: Color;
-    backgroundColorLightness?: ColorAdjustment;
-    border?: BorderStyle | boolean;
-    borderBottom?: BorderStyle | boolean;
-    borderBottomColor?: Color;
-    borderBottomColorLightness?: ColorAdjustment;
-    borderColor?: Color;
-    borderColorLightness?: ColorAdjustment;
-    borderLeft?: BorderStyle | boolean;
-    borderLeftColor?: Color;
-    borderLeftColorLightness?: ColorAdjustment;
-    borderRadius?: BorderRadius | boolean;
-    borderRight?: BorderStyle | boolean;
-    borderRightColor?: Color;
-    borderRightColorLightness?: ColorAdjustment;
-    borderTop?: BorderStyle | boolean;
-    borderTopColor?: Color;
-    borderTopColorLightness?: ColorAdjustment;
-    bottom?: GridSizeOrLength;
-    boxShadow?: BoxShadow | boolean;
-    color?: Color;
-    colorLightness?: ColorAdjustment;
-    columnGap?: GridSize;
+    backgroundColor?: Color<T>;
+    backgroundColorLightness?: ColorAdjustment<T>;
+    border?: BorderStyle<T> | boolean;
+    borderBottom?: BorderStyle<T> | boolean;
+    borderBottomColor?: Color<T>;
+    borderBottomColorLightness?: ColorAdjustment<T>;
+    borderColor?: Color<T>;
+    borderColorLightness?: ColorAdjustment<T>;
+    borderLeft?: BorderStyle<T> | boolean;
+    borderLeftColor?: Color<T>;
+    borderLeftColorLightness?: ColorAdjustment<T>;
+    borderRadius?: BorderRadius<T> | boolean;
+    borderRight?: BorderStyle<T> | boolean;
+    borderRightColor?: Color<T>;
+    borderRightColorLightness?: ColorAdjustment<T>;
+    borderTop?: BorderStyle<T> | boolean;
+    borderTopColor?: Color<T>;
+    borderTopColorLightness?: ColorAdjustment<T>;
+    bottom?: GridSizeOrLength<T>;
+    boxShadow?: BoxShadow<T> | boolean;
+    color?: Color<T>;
+    colorLightness?: ColorAdjustment<T>;
+    columnGap?: GridSize<T>;
     columns?: number | Array<string | number>;
     cursor?: Cursor;
     display?: DisplayMode;
@@ -365,23 +383,23 @@ export type BoxStyleProps = {
     flexGrow?: number;
     flexShrink?: number;
     flexWrap?: FlexWrap;
-    fontSize?: FontSize;
+    fontSize?: FontSize<T>;
     fontStyle?: 'italic';
-    fontWeight?: FontWeight;
-    gap?: GridSize;
+    fontWeight?: FontWeight<T>;
+    gap?: GridSize<T>;
     height?: number | string;
     isFlexible?: boolean;
     isOnlyForScreenReaders?: boolean;
     justifyContent?: FlexJustification;
     justifySelf?: FlexJustification;
-    left?: GridSizeOrLength;
-    margin?: GridSizeOrLength;
-    marginBottom?: GridSizeOrLength;
-    marginLeft?: GridSizeOrLength;
-    marginRight?: GridSizeOrLength;
-    marginTop?: GridSizeOrLength;
-    marginX?: GridSizeOrLength;
-    marginY?: GridSizeOrLength;
+    left?: GridSizeOrLength<T>;
+    margin?: GridSizeOrLength<T>;
+    marginBottom?: GridSizeOrLength<T>;
+    marginLeft?: GridSizeOrLength<T>;
+    marginRight?: GridSizeOrLength<T>;
+    marginTop?: GridSizeOrLength<T>;
+    marginX?: GridSizeOrLength<T>;
+    marginY?: GridSizeOrLength<T>;
     maxHeight?: number | string;
     maxLines?: number;
     maxWidth?: number | string;
@@ -391,24 +409,24 @@ export type BoxStyleProps = {
     overflow?: Overflow;
     overflowX?: Overflow;
     overflowY?: Overflow;
-    padding?: GridSizeOrLength;
-    paddingBottom?: GridSizeOrLength;
-    paddingLeft?: GridSizeOrLength;
-    paddingRight?: GridSizeOrLength;
-    paddingTop?: GridSizeOrLength;
-    paddingX?: GridSizeOrLength;
-    paddingY?: GridSizeOrLength;
+    padding?: GridSizeOrLength<T>;
+    paddingBottom?: GridSizeOrLength<T>;
+    paddingLeft?: GridSizeOrLength<T>;
+    paddingRight?: GridSizeOrLength<T>;
+    paddingTop?: GridSizeOrLength<T>;
+    paddingX?: GridSizeOrLength<T>;
+    paddingY?: GridSizeOrLength<T>;
     pointerEvents?: 'all' | 'auto' | 'none';
     position?: Position;
-    right?: GridSizeOrLength;
-    rowGap?: GridSize;
+    right?: GridSizeOrLength<T>;
+    rowGap?: GridSize<T>;
     textAlign?: TextAlignment;
-    textDecoration?: TextDecoration;
-    top?: GridSizeOrLength;
+    textDecoration?: TextDecoration<T>;
+    top?: GridSizeOrLength<T>;
     transform?: string;
-    transitionDuration?: TransitionDuration;
+    transitionDuration?: TransitionDuration<T>;
     transitionProperty?: AnimatableCSSProperty | Array<AnimatableCSSProperty>;
     whiteSpace?: WhiteSpace;
     width?: number | string;
-    zIndex?: zIndex;
+    zIndex?: zIndex<T>;
 };
